@@ -66,7 +66,7 @@ export function AgentConsole({ initial }: { initial: Turn[] }) {
             <div className="mb-4 grid h-14 w-14 place-items-center bg-accent text-white">
               <Icon name="agent" className="h-7 w-7" />
             </div>
-            <p className="lp-display text-[32px]">Your AI SDR</p>
+            <p className="lp-display text-[32px]">Theron</p>
             <p className="mt-1 text-[15px] text-ink-2">Tell it who you want to reach.</p>
             <div className="mx-auto mt-5 flex max-w-2xl flex-wrap justify-center gap-2">
               {SUGGESTIONS.map((s) => (

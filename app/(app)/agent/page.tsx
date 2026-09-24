@@ -15,7 +15,7 @@ export default async function AgentPage() {
 
   return (
     <>
-      <PageHeader title="Agent console" subtitle="The same AI SDR you reach on WhatsApp. Useful for testing and for longer sessions at a desk." />
+      <PageHeader title="Agent console" subtitle="The same Theron you reach on WhatsApp. Useful for testing and for longer sessions at a desk." />
       <AgentConsole initial={history} />
     </>
   );

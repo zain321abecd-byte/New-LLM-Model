@@ -15,7 +15,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <div className="flex flex-col justify-between py-8 md:py-10">
           <Logo />
           <p className="lp-mono hidden max-w-[320px] text-[15px] leading-[1.8] md:block">
-            Your AI SDR is one message away. Sign in to review leads, drafts and campaigns.
+            Theron is one message away. Sign in to review leads, drafts and campaigns.
           </p>
         </div>
 

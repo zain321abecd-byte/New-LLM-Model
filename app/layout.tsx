@@ -3,8 +3,8 @@ import { lpMono, lpSans } from "@/components/landing/fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AI SDR Agent",
-  description: "An AI sales employee inside WhatsApp: finds leads, qualifies them and writes outreach.",
+  title: "Theron",
+  description: "Theron: an AI sales employee inside WhatsApp: finds leads, qualifies them and writes outreach.",
   robots: { index: false, follow: false },
 };
 

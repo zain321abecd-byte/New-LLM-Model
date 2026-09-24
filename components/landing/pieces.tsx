@@ -14,7 +14,7 @@ export function Logo({ light = false }: { light?: boolean }) {
   return (
     <Link href="/" className={`flex items-center gap-2 text-[22px] font-semibold tracking-[-0.03em] ${light ? "text-[#f1f0ed]" : ""}`}>
       <Mark className="h-6 w-6" />
-      AI SDR
+      Theron
     </Link>
   );
 }

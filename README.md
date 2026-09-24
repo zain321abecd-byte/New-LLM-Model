@@ -1,6 +1,6 @@
-# AI SDR WhatsApp Agent
+# Theron
 
-An AI sales employee you command over WhatsApp. You send a message like *"Find 50 dental clinics in Texas"*. The agent then:
+Theron is an AI sales employee you command over WhatsApp. You send a message like *"Find 50 dental clinics in Texas"*. The agent then:
 
 1. finds the businesses and their decision makers,
 2. enriches and scores each lead,
