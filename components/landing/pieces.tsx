@@ -1,20 +1,29 @@
 import Link from "next/link";
 
-/** The product mark: a square speech bubble with a signal dot. */
+/** The product mark: the Theron "T". */
 export function Mark({ className = "h-6 w-6" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden>
-      <path d="M3 3h18v14h-9l-5 4v-4H3z" fill="currentColor" />
-      <rect x="10" y="7.5" width="4" height="4" fill="var(--lp-orange)" />
-    </svg>
-  );
+  // eslint-disable-next-line @next/next/no-img-element -- small static brand asset
+  return <img src="/brand/theron-mark.png" alt="" width={512} height={512} className={`object-contain ${className}`} aria-hidden />;
+}
+
+/** The full Theron wordmark (mark + name). Dark lettering, for light backgrounds. */
+export function Wordmark({ className = "h-7 w-auto" }: { className?: string }) {
+  // eslint-disable-next-line @next/next/no-img-element -- small static brand asset
+  return <img src="/brand/theron-wordmark.png" alt="Theron" width={604} height={160} className={className} />;
 }
 
 export function Logo({ light = false }: { light?: boolean }) {
+  // The wordmark's lettering is dark, so on dark backgrounds show the mark with light text instead.
   return (
     <Link href="/" className={`flex items-center gap-2 text-[22px] font-semibold tracking-[-0.03em] ${light ? "text-[#f1f0ed]" : ""}`}>
-      <Mark className="h-6 w-6" />
-      Theron
+      {light ? (
+        <>
+          <Mark className="h-7 w-7" />
+          Theron
+        </>
+      ) : (
+        <Wordmark className="h-8 w-auto" />
+      )}
     </Link>
   );
 }

@@ -116,7 +116,7 @@ export default async function Home() {
                 {["left-2 top-2 border-l-2 border-t-2", "right-2 top-2 border-r-2 border-t-2", "bottom-2 left-2 border-b-2 border-l-2", "bottom-2 right-2 border-b-2 border-r-2"].map((c) => (
                   <span key={c} className={`absolute h-3 w-3 border-[var(--lp-orange)] ${c}`} />
                 ))}
-                <Mark className="h-14 w-14 text-[var(--lp-ink)]" />
+                <Mark className="h-20 w-20" />
               </div>
             </div>
             {/* output cards */}
