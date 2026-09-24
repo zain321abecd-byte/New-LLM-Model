@@ -46,7 +46,15 @@ Dashboard ──► /api/agent ───────────┘        │  
 
 ## Setup
 
-1. **Supabase.** Create a project and run [`supabase/001_schema.sql`](supabase/001_schema.sql) in its SQL editor. Under Auth → URL configuration, add `https://YOUR-DOMAIN/auth/callback` as a redirect URL.
+1. **Supabase.** Create a project, then apply the schema in [`supabase/migrations/`](supabase/migrations) with the Supabase CLI:
+
+   ```bash
+   npx supabase login
+   npx supabase link --project-ref YOUR-PROJECT-REF   # asks for the database password
+   npx supabase db push
+   ```
+
+   Or paste the migration file into the SQL editor. Under Auth → URL configuration, set the site URL and add `https://YOUR-DOMAIN/auth/callback` as a redirect URL.
 2. **Env.** Copy `.env.example` to `.env.local` and fill in the values. Only the Supabase vars and `ANTHROPIC_API_KEY` are required. Every other integration is optional.
    To use an Anthropic-compatible proxy, set `ANTHROPIC_BASE_URL`, then run `npm run smoke:ai` to see which API features it supports.
 3. **Run:** `npm install && npm run dev` (port 3003). Sign up, then fill in **Settings → Business profile**. The agent writes outreach from it.
