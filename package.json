@@ -1,0 +1,32 @@
+{
+  "name": "ai-sdr-whatsapp-agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI SDR WhatsApp Agent: an AI sales employee you command over WhatsApp. Finds leads, enriches and scores them, drafts outreach, and sends it on your confirmation.",
+  "scripts": {
+    "dev": "next dev -p 3003",
+    "build": "next build",
+    "start": "next start -p 3003",
+    "typecheck": "tsc --noEmit",
+    "smoke:ai": "node --env-file=.env.local scripts/smoke-anthropic.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0",
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.117.1",
+    "next": "^15.5.26",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "server-only": "^0.0.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^22.20.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "postcss": "^8.5.28",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.3"
+  }
+}

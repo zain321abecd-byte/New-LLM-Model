@@ -1,0 +1,254 @@
+@import "tailwindcss";
+
+/* ===========================================================================
+   Design tokens: editorial grid style shared by the app and the marketing
+   site. Warm neutrals, one orange accent, sharp corners, grotesk display
+   type with uppercase mono labels. The app also has a matching dark theme.
+   =========================================================================== */
+:root {
+  --bg: #f1f0ed;
+  --surface: #ffffff;
+  --surface-2: #f7f6f3;
+  --fill: rgba(28, 28, 28, 0.05);
+  --chrome: rgba(241, 240, 237, 0.88);
+  --border: rgba(28, 28, 28, 0.12);
+
+  --ink: #1c1c1c;
+  --ink-2: #6f6e69;
+  --ink-3: #a9a8a2;
+
+  --accent: #f0561d;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(240, 86, 29, 0.1);
+  --dark: #1e1e1e;
+  --dark-ink: #f1f0ed;
+  --green: #2f9e5b;
+  --orange: #d97706;
+  --danger: #d92d20;
+  --danger-soft: rgba(217, 45, 32, 0.08);
+
+  /* Priority: one hue, strong → faint (ordinal) */
+  --high: #f0561d;
+  --medium: #f6a27f;
+  --low: #dcdad3;
+
+  /* Marketing-site aliases */
+  --lp-orange: #f0561d;
+  --lp-line: rgba(28, 28, 28, 0.12);
+  --lp-dark: #1e1e1e;
+  --lp-bg: #f1f0ed;
+  --lp-ink: #1c1c1c;
+  --lp-ink-2: #6f6e69;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141414;
+    --surface: #1c1c1c;
+    --surface-2: #232323;
+    --fill: rgba(255, 255, 255, 0.06);
+    --chrome: rgba(20, 20, 20, 0.88);
+    --border: rgba(255, 255, 255, 0.1);
+
+    --ink: #f1f0ed;
+    --ink-2: #a3a29c;
+    --ink-3: #6b6a65;
+
+    --accent: #ff6a33;
+    --accent-ink: #ffffff;
+    --accent-soft: rgba(255, 106, 51, 0.14);
+    --dark: #f1f0ed;
+    --dark-ink: #141414;
+    --green: #4cc27a;
+    --orange: #f59e0b;
+    --danger: #f97066;
+    --danger-soft: rgba(249, 112, 102, 0.12);
+
+    --high: #ff6a33;
+    --medium: #a64a28;
+    --low: #3a3936;
+
+    --lp-line: rgba(255, 255, 255, 0.1);
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-fill: var(--fill);
+  --color-chrome: var(--chrome);
+  --color-line: var(--border);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-dark: var(--dark);
+  --color-dark-ink: var(--dark-ink);
+  --color-green: var(--green);
+  --color-orange: var(--orange);
+  --color-high: var(--high);
+  --color-medium: var(--medium);
+  --color-low: var(--low);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --font-sans: var(--font-lp-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-lp-mono), ui-monospace, Menlo, Consolas, monospace;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  font-size: 15px;
+  letter-spacing: -0.015em;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+/* ─── Controls ────────────────────────────────────────────────────────────── */
+
+@utility btn {
+  @apply inline-flex h-11 items-center justify-center gap-2 px-5 font-mono text-[13px] font-medium uppercase tracking-[0.04em] transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40;
+}
+/* Solid block: the primary action. */
+@utility btn-primary {
+  @apply btn bg-dark text-dark-ink hover:bg-accent hover:text-accent-ink;
+}
+/* Outlined block: secondary actions. */
+@utility btn-ghost {
+  @apply btn border border-line bg-surface text-ink hover:border-ink;
+}
+@utility input {
+  @apply h-11 w-full border border-line bg-surface px-3 text-[15px] text-ink outline-none transition-colors placeholder:text-ink-3 focus:border-accent disabled:opacity-50;
+}
+@utility label {
+  @apply mb-1.5 block font-mono text-[11px] uppercase tracking-[0.04em] text-ink-2;
+}
+/* Sharp panel. */
+@utility card {
+  @apply border border-line bg-surface;
+}
+/* Mono section label above a panel. */
+@utility section-title {
+  @apply mb-3 flex items-center gap-2 font-mono text-[12px] font-medium uppercase tracking-[0.04em] text-ink-2 before:h-2 before:w-2 before:bg-accent before:content-[''];
+}
+
+textarea.input {
+  height: auto;
+  padding-top: 0.6rem;
+  padding-bottom: 0.6rem;
+}
+select.input {
+  appearance: none;
+  padding-right: 2rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238a8984' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+}
+input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+/* Square switch: <input type="checkbox" class="toggle"> */
+input[type="checkbox"].toggle {
+  appearance: none;
+  position: relative;
+  flex-shrink: 0;
+  width: 48px;
+  height: 26px;
+  border: 1px solid var(--border);
+  background: var(--fill);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+input[type="checkbox"].toggle::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  background: var(--ink-2);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+input[type="checkbox"].toggle:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+input[type="checkbox"].toggle:checked::after {
+  transform: translateX(22px);
+  background: #fff;
+}
+input[type="checkbox"].toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.lp-mono {
+  font-family: var(--font-lp-mono), ui-monospace, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+.lp-display {
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+}
+
+/* ===========================================================================
+   Marketing site (".lp"): editorial grid style: warm neutrals, one orange
+   accent, visible column guides, grotesk display type with mono labels.
+   Always light, independent of the app's theme.
+   =========================================================================== */
+.lp {
+  --lp-bg: #f1f0ed;
+  --lp-paper: #ffffff;
+  --lp-beige: #dcdbd3;
+  --lp-dark: #1e1e1e;
+  --lp-ink: #1c1c1c;
+  --lp-ink-2: #6f6e69;
+  --lp-line: rgba(28, 28, 28, 0.12);
+  --lp-line-dark: rgba(255, 255, 255, 0.1);
+  --lp-orange: #f0561d;
+  color-scheme: light;
+  background: var(--lp-bg);
+  color: var(--lp-ink);
+  font-family: var(--font-lp-sans), system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+/* Dot-matrix texture, faded into a soft cloud shape */
+.lp-dots {
+  background-image: radial-gradient(rgba(28, 28, 28, 0.16) 1.1px, transparent 1.4px);
+  background-size: 7px 7px;
+  -webkit-mask-image: radial-gradient(ellipse 60% 55% at 30% 70%, #000 20%, transparent 70%), radial-gradient(ellipse 45% 45% at 75% 60%, #000 10%, transparent 70%);
+  mask-image: radial-gradient(ellipse 60% 55% at 30% 70%, #000 20%, transparent 70%), radial-gradient(ellipse 45% 45% at 75% 60%, #000 10%, transparent 70%);
+}
+/* Film grain for dark sections */
+.lp-grain {
+  background-color: var(--lp-dark);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  color: #f1f0ed;
+}
+/* Diagonal hatch fill for the orange frame */
+.lp-hatch {
+  background: repeating-linear-gradient(135deg, var(--lp-orange) 0 4px, #ff7440 4px 6px);
+}
+.lp details > summary {
+  list-style: none;
+}
+.lp details > summary::-webkit-details-marker {
+  display: none;
+}
+.lp details[open] .lp-faq-plus {
+  transform: rotate(45deg);
+}
