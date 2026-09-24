@@ -1,6 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { timingSafeEqual } from "node:crypto";
-import { env } from "@/lib/env";
+import { isCronAuthorized } from "@/lib/cron-auth";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { followUpCandidates } from "@/lib/db";
 import { notifyWorkspace } from "@/lib/notify";
@@ -14,15 +13,15 @@ export const maxDuration = 300;
  * itself: the owner replies "draft follow-ups" and confirms as usual.
  */
 export async function GET(req: NextRequest) {
-  const secret = env().CRON_SECRET;
-  const given = Buffer.from(req.headers.get("authorization") ?? "");
-  const expected = Buffer.from(`Bearer ${secret ?? ""}`);
-  if (!secret || given.length !== expected.length || !timingSafeEqual(given, expected)) {
-    return new NextResponse("Unauthorized", { status: 401 });
-  }
+  if (!isCronAuthorized(req.headers.get("authorization"))) return new NextResponse("Unauthorized", { status: 401 });
 
-  const { data: links } = await supabaseAdmin().from("whatsapp_links").select("workspace_id").not("verified_at", "is", null);
-  const workspaces = [...new Set((links ?? []).map((l) => l.workspace_id as string))];
+  // Workspaces reachable on WhatsApp: a linked number, or an agent chat with an owner.
+  const db = supabaseAdmin();
+  const [{ data: links }, { data: agents }] = await Promise.all([
+    db.from("whatsapp_links").select("workspace_id").not("verified_at", "is", null),
+    db.from("whatsapp_agent_connections").select("workspace_id").eq("enabled", true).not("owner_participant", "is", null),
+  ]);
+  const workspaces = [...new Set([...(links ?? []), ...(agents ?? [])].map((l) => l.workspace_id as string))];
 
   let notified = 0;
   for (const ws of workspaces) {

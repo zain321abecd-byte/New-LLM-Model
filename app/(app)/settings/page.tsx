@@ -2,13 +2,14 @@ import { requireAuth } from "@/lib/auth";
 import { env, integrations } from "@/lib/env";
 import { supabaseServer } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui";
-import { ProfileForm, WhatsAppLinkForm } from "./forms";
+import { getAgentConnection } from "@/lib/db";
+import { ProfileForm, WhatsAppAgentForm, WhatsAppLinkForm, type AgentStatus } from "./forms";
 
 export const dynamic = "force-dynamic";
 
 const INTEGRATIONS: { key: keyof ReturnType<typeof integrations>; label: string; purpose: string }[] = [
   { key: "ai", label: "Claude (Anthropic)", purpose: "Agent brain" },
-  { key: "whatsapp", label: "WhatsApp Cloud API", purpose: "Commands, replies, opted-in outreach" },
+  { key: "whatsapp", label: "WhatsApp Cloud API", purpose: "Opted-in lead outreach; commands via a business number" },
   { key: "serpapi", label: "SerpAPI", purpose: "Google + Google Maps search" },
   { key: "googleCse", label: "Google Programmable Search", purpose: "Web search fallback" },
   { key: "apollo", label: "Apollo", purpose: "Decision makers, company data" },
@@ -22,6 +23,15 @@ export default async function SettingsPage() {
   const supabase = await supabaseServer();
   const { data: link } = await supabase.from("whatsapp_links").select("phone, verified_at").eq("user_id", auth.userId).maybeSingle();
   const live = integrations();
+  const conn = await getAgentConnection(auth.workspace.id).catch(() => null);
+  const agentStatus: AgentStatus | null = conn && {
+    keyHint: conn.key_hint,
+    enabled: conn.enabled,
+    hasOwner: !!conn.owner_participant,
+    lastPolledAt: conn.last_polled_at,
+    lastMessageAt: conn.last_message_at,
+    lastError: conn.last_error,
+  };
 
   return (
     <>
@@ -31,6 +41,7 @@ export default async function SettingsPage() {
           <ProfileForm ws={auth.workspace} canEdit={auth.role !== "member"} />
         </div>
         <div className="space-y-7 lg:col-span-2">
+          <WhatsAppAgentForm status={agentStatus} canEdit={auth.role !== "member"} />
           <WhatsAppLinkForm linkedPhone={link?.verified_at ? link.phone : null} businessNumber={env().WHATSAPP_BUSINESS_NUMBER ?? null} />
           <section>
             <h2 className="section-title">Integrations</h2>

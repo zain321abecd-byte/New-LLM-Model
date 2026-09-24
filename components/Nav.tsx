@@ -9,6 +9,7 @@ const ITEMS: { href: string; label: string; icon: IconName }[] = [
   { href: "/leads", label: "Leads", icon: "leads" },
   { href: "/campaigns", label: "Campaigns", icon: "campaigns" },
   { href: "/agent", label: "Agent", icon: "agent" },
+  { href: "/conversations", label: "Chats", icon: "conversations" },
   { href: "/settings", label: "Settings", icon: "settings" },
 ];
 
@@ -48,7 +49,7 @@ export function TabBar() {
   const isActive = useActive();
   return (
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-chrome pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
-      <div className="grid grid-cols-5">
+      <div className="grid grid-cols-6">
         {ITEMS.map((item) => {
           const active = isActive(item.href);
           return (

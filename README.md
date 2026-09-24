@@ -15,6 +15,7 @@ Stack: Next.js 15 (App Router) + Tailwind 4, Supabase (Postgres + Auth), Claude 
 ## How it works
 
 ```
+WhatsApp agent ◄─► /api/whatsapp-agent/poll ─┐  (long-polls the WhatsApp Agent API; you chat in your own WhatsApp)
 WhatsApp ──► /api/whatsapp/webhook ─┐                 ┌─► SerpAPI (Google, Google Maps) / Google CSE / Claude web search
                 (signature-checked) ├─► handleCommand ─► agent loop (Claude + tools) ─┼─► Apollo (people, companies) · Hunter (emails) · Clearbit
 Dashboard ──► /api/agent ───────────┘        │                  ▲                     ├─► Website extraction (SSRF-guarded fetch)
@@ -42,7 +43,8 @@ Dashboard ──► /api/agent ───────────┘        │  
   - WhatsApp only to leads who opted in (Meta policy);
   - approved templates outside the 24-hour window;
   - daily send caps per workspace.
-- **Replies:** when a lead messages the business number, the agent logs it, marks the lead *replied* and alerts you on WhatsApp. "STOP" opts the lead out.
+- **Replies:** when a lead messages the business number, the agent logs it, marks the lead *replied* and alerts you on WhatsApp (in your agent chat, and on any linked number). "STOP" opts the lead out.
+- **Conversations:** every message between you and the agent, on WhatsApp and in the web console, is logged and readable in the dashboard. Owners and admins see the whole workspace; members see their own.
 
 ## Setup
 
@@ -58,7 +60,18 @@ Dashboard ──► /api/agent ───────────┘        │  
 2. **Env.** Copy `.env.example` to `.env.local` and fill in the values. Only the Supabase vars and `ANTHROPIC_API_KEY` are required. Every other integration is optional.
    To use an Anthropic-compatible proxy, set `ANTHROPIC_BASE_URL`, then run `npm run smoke:ai` to see which API features it supports.
 3. **Run:** `npm install && npm run dev` (port 3003). Sign up, then fill in **Settings → Business profile**. The agent writes outreach from it.
-4. **WhatsApp (Meta):**
+4. **WhatsApp agent (recommended way to chat with Theron).** Uses WhatsApp's Agents feature, so no Meta business app is needed.
+   - Run [`supabase/migrations/20260925000000_whatsapp_agent.sql`](supabase/migrations/20260925000000_whatsapp_agent.sql) (or `npx supabase db push`).
+   - Set `CRON_SECRET` to a long random string.
+   - In WhatsApp: **Settings → Agents → Add an agent**, name it Theron, and copy its connection key. Give Theron its own agent; a key already used by another app can't be polled by both.
+   - In the dashboard: **Settings → WhatsApp agent**, paste the key, then message the agent from your WhatsApp. The first person to message it becomes its owner; it ignores everyone else.
+   - Something has to check for messages about once a minute, since the Agent API has no webhooks. Call `GET /api/whatsapp-agent/poll` with `Authorization: Bearer $CRON_SECRET`:
+     - **Locally:** run `npm run agent:poll` next to `npm run dev`.
+     - **Vercel Pro:** add `{ "path": "/api/whatsapp-agent/poll", "schedule": "* * * * *" }` to `crons` in `vercel.json`. Hobby plans only allow daily crons, and a deploy with a per-minute cron fails there.
+     - **Any plan:** a free scheduler such as cron-job.org, every minute, with that `Authorization` header.
+   - Every message is logged under **Conversations** in the dashboard.
+
+   **WhatsApp Cloud API (Meta), optional.** Needed only to message *leads* on WhatsApp, or to command Theron through a business number instead of the agent chat:
    - Create an app with the WhatsApp product and add a phone number.
    - Create a System User token with `whatsapp_business_messaging`.
    - Set the webhook URL to `https://YOUR-DOMAIN/api/whatsapp/webhook`, with verify token = `WHATSAPP_VERIFY_TOKEN`, and subscribe to `messages`.

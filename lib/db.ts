@@ -3,7 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { toDomain } from "@/lib/http";
 import { normalizePhone } from "@/lib/phone";
 import { dedupeKey, scoreLead, type ScoreInput } from "@/lib/scoring";
-import type { AgentThread, Campaign, Channel, Lead, LeadStatus, Message, Priority, Workspace } from "@/lib/types";
+import type { AgentMessage, AgentThread, Campaign, Channel, Lead, LeadStatus, Message, Priority, WhatsAppAgentConnection, Workspace } from "@/lib/types";
 
 /**
  * Workspace-scoped data access for code that runs without a user session
@@ -285,6 +285,56 @@ export async function getThread(
 
 export async function saveThread(thread: AgentThread, patch: Partial<Pick<AgentThread, "history" | "last_lead_ids" | "last_inbound_at">>) {
   await db().from("agent_threads").update({ ...patch, updated_at: new Date().toISOString() }).eq("id", thread.id).eq("workspace_id", thread.workspace_id);
+}
+
+/**
+ * Append turns to the full conversation log. Best effort: the log feeds the
+ * Conversations page only, so a failure here must never fail a reply.
+ */
+export async function logAgentMessages(thread: AgentThread, turns: { role: "user" | "assistant"; text: string }[]) {
+  const { error } = await db().from("agent_messages").insert(turns.map((t) => ({ workspace_id: thread.workspace_id, thread_id: thread.id, role: t.role, text: t.text })));
+  if (error) console.error("[agent_messages]", error.message);
+}
+
+/** Threads for the Conversations page, most recent first. `userId` limits them to one member's own. */
+export async function listAgentThreads(workspaceId: string, userId: string | null): Promise<AgentThread[]> {
+  let q = db().from("agent_threads").select("id, workspace_id, user_id, channel, external_id, last_inbound_at, updated_at").eq("workspace_id", workspaceId);
+  if (userId) q = q.eq("user_id", userId);
+  return check(await q.order("updated_at", { ascending: false }).limit(100)) as unknown as AgentThread[];
+}
+
+/** The latest `limit` messages of one thread, oldest first. */
+export async function agentThreadMessages(workspaceId: string, threadId: string, limit = 300): Promise<AgentMessage[]> {
+  const rows = check(
+    await db().from("agent_messages").select("id, thread_id, role, text, created_at").eq("workspace_id", workspaceId).eq("thread_id", threadId).order("id", { ascending: false }).limit(limit),
+  ) as AgentMessage[];
+  return rows.reverse();
+}
+
+/** The newest message of each given thread, for list previews. */
+export async function latestAgentMessages(workspaceId: string, threadIds: string[]): Promise<Map<string, AgentMessage>> {
+  const latest = new Map<string, AgentMessage>();
+  if (!threadIds.length) return latest;
+  const rows = check(
+    await db().from("agent_messages").select("id, thread_id, role, text, created_at").eq("workspace_id", workspaceId).in("thread_id", threadIds).order("id", { ascending: false }).limit(1000),
+  ) as AgentMessage[];
+  for (const r of rows) if (!latest.has(r.thread_id)) latest.set(r.thread_id, r);
+  return latest;
+}
+
+// ─── WhatsApp agent connection ─────────────────────────────────────────────
+
+export async function getAgentConnection(workspaceId: string): Promise<WhatsAppAgentConnection | null> {
+  return check(await db().from("whatsapp_agent_connections").select("*").eq("workspace_id", workspaceId).maybeSingle()) as WhatsAppAgentConnection | null;
+}
+
+export async function enabledAgentConnections(): Promise<WhatsAppAgentConnection[]> {
+  return check(await db().from("whatsapp_agent_connections").select("*").eq("enabled", true)) as WhatsAppAgentConnection[];
+}
+
+export async function updateAgentConnection(workspaceId: string, patch: Partial<Omit<WhatsAppAgentConnection, "workspace_id">>) {
+  const { error } = await db().from("whatsapp_agent_connections").update({ ...patch, updated_at: new Date().toISOString() }).eq("workspace_id", workspaceId);
+  if (error) console.error("[agent connection]", error.message);
 }
 
 // ─── Usage metering ────────────────────────────────────────────────────────
