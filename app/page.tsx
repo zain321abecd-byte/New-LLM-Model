@@ -96,7 +96,7 @@ export default async function Home() {
               sales pipeline
             </h1>
             <p className="lp-mono mt-10 max-w-[520px] text-[17px] leading-[1.75] md:text-[20px]">
-              An AI SDR in your WhatsApp. It finds leads, qualifies them and writes the outreach. You just say yes.
+              Theron is an AI SDR in your WhatsApp. It finds leads, qualifies them and writes the outreach. You just say yes.
             </p>
           </div>
 
@@ -371,7 +371,7 @@ export default async function Home() {
         </div>
         <div className="relative mx-auto flex max-w-[1800px] items-center justify-between border-t border-[var(--lp-line)] px-5 py-8 md:px-12">
           <Logo />
-          <span className="lp-mono text-[13px] text-[var(--lp-ink-2)]">© {new Date().getFullYear()} AI SDR Agent</span>
+          <span className="lp-mono text-[13px] text-[var(--lp-ink-2)]">© {new Date().getFullYear()} Theron</span>
         </div>
       </footer>
     </div>

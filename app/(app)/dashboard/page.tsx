@@ -47,7 +47,7 @@ export default async function DashboardPage() {
 
   return (
     <>
-      <PageHeader title="Overview" subtitle="Your AI SDR's pipeline at a glance." />
+      <PageHeader title="Overview" subtitle="Theron's pipeline at a glance." />
 
       {(!profileDone || !linked) && (
         <section className="mb-8">

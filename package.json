@@ -1,8 +1,8 @@
 {
-  "name": "ai-sdr-whatsapp-agent",
+  "name": "theron",
   "version": "0.1.0",
   "private": true,
-  "description": "AI SDR WhatsApp Agent: an AI sales employee you command over WhatsApp. Finds leads, enriches and scores them, drafts outreach, and sends it on your confirmation.",
+  "description": "Theron: an AI sales employee you command over WhatsApp. Finds leads, enriches and scores them, drafts outreach, and sends it on your confirmation.",
   "scripts": {
     "dev": "next dev -p 3003",
     "build": "next build",

@@ -54,7 +54,7 @@ export async function fetchPublicPage(rawUrl: string, maxBytes = 400_000): Promi
     const res = await fetch(url, {
       redirect: "manual",
       signal: AbortSignal.timeout(10_000),
-      headers: { "user-agent": "Mozilla/5.0 (compatible; SDRAgentBot/1.0; +lead-research)", accept: "text/html" },
+      headers: { "user-agent": "Mozilla/5.0 (compatible; TheronBot/1.0; +lead-research)", accept: "text/html" },
     }).catch(() => null);
     if (!res) return null;
     if (res.status >= 300 && res.status < 400) {
