@@ -1,5 +1,5 @@
 import "server-only";
-import { getThread, getWorkspace, saveThread } from "@/lib/db";
+import { getThread, getWorkspace, logAgentMessages, saveThread } from "@/lib/db";
 import { runAgent } from "@/lib/agent/agent";
 import { cancelPendingAction, executePendingAction, getPendingAction } from "@/lib/agent/send";
 import { integrations } from "@/lib/env";
@@ -30,6 +30,7 @@ export async function handleCommand(input: CommandInput): Promise<string> {
   const record = async (reply: string, lastLeadIds?: string[]) => {
     const history = [...thread.history, { role: "user" as const, text }, { role: "assistant" as const, text: reply }].slice(-MAX_STORED_TURNS);
     await saveThread(thread, { history, last_inbound_at: new Date().toISOString(), ...(lastLeadIds ? { last_lead_ids: lastLeadIds.slice(0, 500) } : {}) });
+    await logAgentMessages(thread, [{ role: "user", text }, { role: "assistant", text: reply }]);
     return reply;
   };
 

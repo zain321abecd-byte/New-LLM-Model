@@ -6,7 +6,7 @@ import { createServerClient } from "@supabase/ssr";
  * signed-out visitors away from the app. Real authorisation happens again
  * server-side (lib/auth.ts, RLS); this is the early redirect.
  */
-const PROTECTED = ["/dashboard", "/leads", "/campaigns", "/agent", "/settings"];
+const PROTECTED = ["/dashboard", "/leads", "/campaigns", "/agent", "/conversations", "/settings"];
 
 export async function middleware(req: NextRequest) {
   let res = NextResponse.next({ request: req });

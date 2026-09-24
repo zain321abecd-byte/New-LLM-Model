@@ -93,4 +93,26 @@ export interface AgentThread {
   history: { role: "user" | "assistant"; text: string }[];
   last_lead_ids: string[];
   last_inbound_at: string | null;
+  updated_at?: string;
+}
+
+export interface WhatsAppAgentConnection {
+  workspace_id: string;
+  created_by: string | null;
+  api_key_enc: string;
+  key_hint: string;
+  owner_participant: string | null;
+  next_offset: string | null;
+  enabled: boolean;
+  last_polled_at: string | null;
+  last_message_at: string | null;
+  last_error: string | null;
+}
+
+export interface AgentMessage {
+  id: number;
+  thread_id: string;
+  role: "user" | "assistant";
+  text: string;
+  created_at: string;
 }

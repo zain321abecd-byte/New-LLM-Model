@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start -p 3003",
     "typecheck": "tsc --noEmit",
-    "smoke:ai": "node --env-file=.env.local scripts/smoke-anthropic.mjs"
+    "smoke:ai": "node --env-file=.env.local scripts/smoke-anthropic.mjs",
+    "agent:poll": "node --env-file=.env.local scripts/agent-poll.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.128.0",
