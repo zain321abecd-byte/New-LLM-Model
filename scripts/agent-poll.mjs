@@ -1,5 +1,7 @@
-// Keeps the WhatsApp agent answering while you develop locally: calls the
-// poll endpoint back to back (each call long-polls for ~50s).
+// Calls the WhatsApp agent poll endpoint back to back (each call long-polls
+// for ~50s). Usually not needed: with WHATSAPP_AGENT_ENABLED=true, `npm run dev`
+// and `npm start` run a background worker that does this. Use it to drive a
+// server elsewhere, e.g. NEXT_PUBLIC_SITE_URL=https://your-app.vercel.app.
 // Usage: npm run agent:poll   (reads NEXT_PUBLIC_SITE_URL and CRON_SECRET from .env.local)
 const site = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3003").replace(/\/+$/, "");
 const secret = process.env.CRON_SECRET;
@@ -16,6 +18,10 @@ for (;;) {
     if (!res.ok) console.error(`${new Date().toLocaleTimeString()}  ${res.status} ${body.slice(0, 200)}`);
     else {
       const r = JSON.parse(body);
+      if (r.enabled === false) {
+        console.error("WHATSAPP_AGENT_ENABLED is not true on the server. Set it in .env.local and restart npm run dev.");
+        process.exit(1);
+      }
       if (r.messages) console.log(`${new Date().toLocaleTimeString()}  answered ${r.messages} message(s)`);
     }
     if (!res.ok) await new Promise((r) => setTimeout(r, 10_000));

@@ -58,18 +58,17 @@ Dashboard ──► /api/agent ───────────┘        │  
 
    Or paste the migration file into the SQL editor. Under Auth → URL configuration, set the site URL and add `https://YOUR-DOMAIN/auth/callback` as a redirect URL.
 2. **Env.** Copy `.env.example` to `.env.local` and fill in the values. Only the Supabase vars and `ANTHROPIC_API_KEY` are required. Every other integration is optional.
-   To use an Anthropic-compatible proxy, set `ANTHROPIC_BASE_URL`, then run `npm run smoke:ai` to see which API features it supports.
+   To use an Anthropic-compatible proxy, set `ANTHROPIC_BASE_URL` and an `AGENT_MODEL` it serves, then run `npm run smoke:ai` to see which API features it supports. If it rejects adaptive thinking, effort, betas or server tools, the agent falls back to the basic Messages API by itself (or set `AGENT_COMPAT=1`).
 3. **Run:** `npm install && npm run dev` (port 3003). Sign up, then fill in **Settings → Business profile**. The agent writes outreach from it.
 4. **WhatsApp agent (recommended way to chat with Theron).** Uses WhatsApp's Agents feature, so no Meta business app is needed.
    - Run [`supabase/migrations/20260925000000_whatsapp_agent.sql`](supabase/migrations/20260925000000_whatsapp_agent.sql) (or `npx supabase db push`).
-   - Set `CRON_SECRET` to a long random string.
-   - In WhatsApp: **Settings → Agents → Add an agent**, name it Theron, and copy its connection key. Give Theron its own agent; a key already used by another app can't be polled by both.
-   - In the dashboard: **Settings → WhatsApp agent**, paste the key, then message the agent from your WhatsApp. The first person to message it becomes its owner; it ignores everyone else.
-   - Something has to check for messages about once a minute, since the Agent API has no webhooks. Call `GET /api/whatsapp-agent/poll` with `Authorization: Bearer $CRON_SECRET`:
-     - **Locally:** run `npm run agent:poll` next to `npm run dev`.
-     - **Vercel Pro:** add `{ "path": "/api/whatsapp-agent/poll", "schedule": "* * * * *" }` to `crons` in `vercel.json`. Hobby plans only allow daily crons, and a deploy with a per-minute cron fails there.
-     - **Any plan:** a free scheduler such as cron-job.org, every minute, with that `Authorization` header.
-   - Every message is logged under **Conversations** in the dashboard.
+   - In WhatsApp: **Settings → Agents → Add an agent**, name it Theron, and copy its key. Give Theron its own agent: only one app can poll a key (a second poller gets 409).
+   - Either paste the key in **Settings → WhatsApp agent**, or set `WHATSAPP_AGENT_KEY` (plus `WHATSAPP_AGENT_WORKSPACE_ID` if you have more than one workspace).
+   - Turn it on with `WHATSAPP_AGENT_ENABLED=true` and restart. It is off by default; **Settings → WhatsApp agent → Pause/Resume** switches one workspace on and off.
+   - Message the agent from the WhatsApp account that created it. That account becomes its owner; anyone else is refused.
+   - **What runs it:** `npm run dev` / `npm start` start a background worker (`instrumentation.ts`) that long-polls `/updates`, shows the typing indicator, runs the command through the same agent as the web console, and replies in the chat (quoting your message, converted to WhatsApp formatting, split under 4,096 characters). It paces itself to WhatsApp's limits (15 polls and 12 sends a minute), waits out 429s, and backs off on errors without stopping.
+   - **On Vercel** nothing stays running, so call `GET /api/whatsapp-agent/poll` about once a minute with `Authorization: Bearer $CRON_SECRET`: add `{ "path": "/api/whatsapp-agent/poll", "schedule": "* * * * *" }` to `crons` in `vercel.json` (Pro; Hobby deploys fail with per-minute crons), or use a free scheduler such as cron-job.org. `npm run agent:poll` does the same from your machine against any server.
+   - Every message is logged in the server console (`[wa-agent] ←` / `→`) and under **Conversations** in the dashboard. The agent sees the last 20 turns of each chat.
 
    **WhatsApp Cloud API (Meta), optional.** Needed only to message *leads* on WhatsApp, or to command Theron through a business number instead of the agent chat:
    - Create an app with the WhatsApp product and add a phone number.

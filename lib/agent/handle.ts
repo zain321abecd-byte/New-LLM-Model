@@ -1,6 +1,6 @@
 import "server-only";
 import { getThread, getWorkspace, logAgentMessages, saveThread } from "@/lib/db";
-import { runAgent } from "@/lib/agent/agent";
+import { describeAgentError, runAgent } from "@/lib/agent/agent";
 import { cancelPendingAction, executePendingAction, getPendingAction } from "@/lib/agent/send";
 import { integrations } from "@/lib/env";
 
@@ -53,6 +53,6 @@ export async function handleCommand(input: CommandInput): Promise<string> {
     return record(reply, lastLeadIds);
   } catch (err) {
     console.error("[agent]", err);
-    return record("Something went wrong on my side while working on that. Nothing was sent. Please try again in a minute.");
+    return record(`${describeAgentError(err)} Nothing was sent.`);
   }
 }
