@@ -13,14 +13,63 @@ import { runTool, toolDefinitions, type ToolContext } from "@/lib/agent/tools";
  */
 
 const MAX_ITERATIONS = 24;
-const HISTORY_TURNS = 12;
+const HISTORY_TURNS = 20;
 
 let client: Anthropic | undefined;
 function anthropic() {
   const key = env().ANTHROPIC_API_KEY;
   if (!key) throw new Error("ANTHROPIC_API_KEY is not set.");
-  client ??= new Anthropic({ apiKey: key, maxRetries: 3 });
+  // Proxies are often documented as ".../v1"; the SDK adds /v1 itself.
+  const baseURL = process.env.ANTHROPIC_BASE_URL?.trim().replace(/\/v1\/?$/, "") || undefined;
+  client ??= new Anthropic({ apiKey: key, baseURL, maxRetries: 3 });
   return client;
+}
+
+// Anthropic-compatible proxies often reject beta headers, adaptive thinking,
+// effort or server tools. After the first such rejection (or with
+// AGENT_COMPAT=1), requests use only the basic Messages API surface.
+let compat = process.env.AGENT_COMPAT === "1";
+
+type CreateParams = Anthropic.Beta.MessageCreateParamsNonStreaming;
+
+// Blocks only the full API produces; dropped if the switch happens mid-run.
+const FULL_ONLY_BLOCKS = new Set(["thinking", "redacted_thinking", "server_tool_use", "web_search_tool_result", "fallback"]);
+
+function compatParams(p: CreateParams): Anthropic.MessageCreateParamsNonStreaming {
+  const tools = (p.tools ?? []).filter((t): t is Anthropic.Beta.BetaTool => "input_schema" in t).map(({ cache_control: _c, ...t }) => t);
+  const messages = p.messages.map((m) =>
+    typeof m.content === "string" ? m : { ...m, content: m.content.filter((b) => !FULL_ONLY_BLOCKS.has(b.type)) },
+  );
+  return { model: p.model, max_tokens: p.max_tokens, system: p.system, tools, messages } as unknown as Anthropic.MessageCreateParamsNonStreaming;
+}
+
+async function createMessage(p: CreateParams): Promise<Anthropic.Beta.BetaMessage> {
+  const plain = () => anthropic().messages.create(compatParams(p)) as unknown as Promise<Anthropic.Beta.BetaMessage>;
+  if (compat) return plain();
+  try {
+    return await anthropic().beta.messages.create(p);
+  } catch (err) {
+    const unsupported = err instanceof Anthropic.BadRequestError || err instanceof Anthropic.NotFoundError || err instanceof Anthropic.UnprocessableEntityError;
+    if (!unsupported) throw err;
+    const reply = await plain(); // if this fails too, the problem isn't the feature set
+    compat = true;
+    console.warn("[agent] endpoint rejected advanced features; using basic Messages API from now on:", (err as Error).message);
+    return reply;
+  }
+}
+
+/** A short, secret-free explanation of why the AI call failed, for the user's reply. */
+export function describeAgentError(err: unknown): string {
+  const model = env().AGENT_MODEL;
+  if (err instanceof Anthropic.AuthenticationError) return "The AI key was rejected. Check ANTHROPIC_API_KEY in the server settings (and ANTHROPIC_BASE_URL if the key is for a proxy).";
+  if (err instanceof Anthropic.PermissionDeniedError) return `The AI key isn't allowed to use model ${model}. Set AGENT_MODEL to a model the key can use.`;
+  if (err instanceof Anthropic.NotFoundError) return `The AI model "${model}" wasn't found at the AI endpoint. Set AGENT_MODEL to a model it supports.`;
+  if (err instanceof Anthropic.RateLimitError) return "The AI service is rate-limiting requests. Try again in a minute.";
+  if (err instanceof Anthropic.APIConnectionError) return "Couldn't reach the AI service. Check the internet connection and ANTHROPIC_BASE_URL.";
+  if (err instanceof Anthropic.InternalServerError) return "The AI service is having trouble right now. Try again in a minute.";
+  if (err instanceof Anthropic.BadRequestError) return `The AI service rejected the request: ${err.message.slice(0, 200)}`;
+  if (err instanceof Error && /ANTHROPIC_API_KEY/.test(err.message)) return err.message;
+  return "Something went wrong on my side while working on that.";
 }
 
 export interface AgentTurnResult {
@@ -54,7 +103,7 @@ export async function runAgent(
   let finalText = "";
   for (let i = 0; i < MAX_ITERATIONS; i++) {
     if (i > 0) onProgress?.();
-    const response = await anthropic().beta.messages.create({
+    const response = await createMessage({
       model: e.AGENT_MODEL,
       max_tokens: 16000,
       betas: ["server-side-fallback-2026-07-01"],

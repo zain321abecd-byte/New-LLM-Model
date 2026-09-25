@@ -34,6 +34,11 @@ const schema = z.object({
   WHATSAPP_NOTIFY_TEMPLATE: optional, // approved template for owner alerts outside 24h
   WHATSAPP_TEMPLATE_LANG: z.string().default("en_US"),
 
+  // WhatsApp agent (Settings → Agents in WhatsApp). Off unless explicitly enabled.
+  WHATSAPP_AGENT_ENABLED: z.string().optional().transform((v) => v === "true" || v === "1"),
+  WHATSAPP_AGENT_KEY: optional, // optional: overrides the key pasted in Settings
+  WHATSAPP_AGENT_WORKSPACE_ID: optional, // which workspace WHATSAPP_AGENT_KEY belongs to; defaults to the only one
+
   SERPAPI_API_KEY: optional,
   GOOGLE_CSE_API_KEY: optional,
   GOOGLE_CSE_ID: optional,

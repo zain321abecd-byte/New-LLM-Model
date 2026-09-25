@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { connectWhatsAppAgentAction, createLinkCodeAction, disconnectWhatsAppAgentAction, saveProfileAction } from "./actions";
+import { connectWhatsAppAgentAction, createLinkCodeAction, disconnectWhatsAppAgentAction, saveProfileAction, setWhatsAppAgentEnabledAction } from "./actions";
 import type { Workspace } from "@/lib/types";
 
 /** One row of an inset grouped form: label on the left, value on the right. */
@@ -131,9 +131,9 @@ function ago(iso: string | null): string {
 }
 
 /** WhatsApp → Settings → Agents: paste the agent's connection key here. */
-export function WhatsAppAgentForm({ status, canEdit }: { status: AgentStatus | null; canEdit: boolean }) {
+export function WhatsAppAgentForm({ status, canEdit, workerEnabled, keyFromEnv }: { status: AgentStatus | null; canEdit: boolean; workerEnabled: boolean; keyFromEnv: boolean }) {
   const [state, action, pending] = useActionState(connectWhatsAppAgentAction, {});
-  const stale = status?.enabled && (!status.lastPolledAt || Date.now() - new Date(status.lastPolledAt).getTime() > 5 * 60_000);
+  const stale = workerEnabled && status?.enabled && (!status.lastPolledAt || Date.now() - new Date(status.lastPolledAt).getTime() > 5 * 60_000);
 
   return (
     <section id="whatsapp-agent">
@@ -158,7 +158,7 @@ export function WhatsAppAgentForm({ status, canEdit }: { status: AgentStatus | n
             </div>
           </>
         )}
-        {canEdit && (
+        {canEdit && !keyFromEnv && (
           <form action={action} className="flex items-center gap-2 px-4 py-2">
             <input name="key" type="password" required autoComplete="off" placeholder="Paste connection key" className="h-9 w-full min-w-0 bg-transparent text-[15px] outline-none placeholder:text-ink-3" aria-label="WhatsApp agent connection key" />
             <button className="btn-ghost h-8 shrink-0 px-3 text-[13px]" disabled={pending}>{pending ? "Checking…" : status ? "Replace" : "Connect"}</button>
@@ -168,16 +168,29 @@ export function WhatsAppAgentForm({ status, canEdit }: { status: AgentStatus | n
       {state.error && <p className="mt-2 px-4 text-[13px] text-danger">{state.error}</p>}
       {state.ok && <p className="mt-2 px-4 text-[13px] text-green">✓ Connected. Now send your agent a message on WhatsApp.</p>}
       {status?.lastError && <p className="mt-2 px-4 text-[13px] text-danger">{status.lastError}</p>}
+      {!workerEnabled && (
+        <p className="mt-2 px-4 text-[13px] text-danger">The WhatsApp agent worker is off. Set WHATSAPP_AGENT_ENABLED=true in the server environment and restart.</p>
+      )}
       {stale && !status?.lastError && (
-        <p className="mt-2 px-4 text-[13px] text-danger">Nothing has checked for messages in the last few minutes. Schedule /api/whatsapp-agent/poll (see README), or run npm run agent:poll.</p>
+        <p className="mt-2 px-4 text-[13px] text-danger">Nothing has checked for messages in the last few minutes. Keep the server running (npm run dev / npm start), or on Vercel schedule /api/whatsapp-agent/poll (see README).</p>
       )}
       <p className="mt-2 px-4 text-[13px] text-ink-2">
-        In WhatsApp, go to Settings → Agents → Add an agent, name it Theron, and paste its connection key here. Then chat with Theron in that WhatsApp chat.
+        {keyFromEnv
+          ? "The agent key comes from WHATSAPP_AGENT_KEY in the server environment."
+          : "In WhatsApp, go to Settings → Agents → Add an agent, name it Theron, and paste its connection key here. Then chat with Theron in that WhatsApp chat."}
       </p>
       {status && canEdit && (
-        <form action={disconnectWhatsAppAgentAction} className="mt-1 px-4">
-          <button className="text-[13px] text-ink-2 underline hover:text-danger">Disconnect</button>
-        </form>
+        <div className="mt-1 flex items-center gap-4 px-4">
+          <form action={setWhatsAppAgentEnabledAction}>
+            <input type="hidden" name="enabled" value={status.enabled ? "false" : "true"} />
+            <button className="text-[13px] text-ink-2 underline hover:text-ink">{status.enabled ? "Pause" : "Resume"}</button>
+          </form>
+          {!keyFromEnv && (
+            <form action={disconnectWhatsAppAgentAction}>
+              <button className="text-[13px] text-ink-2 underline hover:text-danger">Disconnect</button>
+            </form>
+          )}
+        </div>
       )}
     </section>
   );

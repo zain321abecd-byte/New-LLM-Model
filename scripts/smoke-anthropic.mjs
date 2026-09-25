@@ -3,7 +3,9 @@
 import Anthropic from "@anthropic-ai/sdk";
 
 const model = process.env.AGENT_MODEL || "claude-opus-5";
-const client = new Anthropic({ maxRetries: 0, timeout: 60_000 }); // picks up ANTHROPIC_BASE_URL automatically
+// Same base URL handling as the app: a trailing /v1 is dropped (the SDK adds it).
+const baseURL = process.env.ANTHROPIC_BASE_URL?.trim().replace(/\/v1\/?$/, "") || undefined;
+const client = new Anthropic({ baseURL, maxRetries: 0, timeout: 60_000 });
 console.log(`Endpoint: ${client.baseURL}\nModel:    ${model}\n`);
 
 const checks = [

@@ -88,3 +88,14 @@ export async function disconnectWhatsAppAgentAction(): Promise<void> {
   await supabaseAdmin().from("whatsapp_agent_connections").delete().eq("workspace_id", auth.workspace.id);
   revalidatePath("/settings");
 }
+
+/** Admin start/stop switch for this workspace's WhatsApp agent. */
+export async function setWhatsAppAgentEnabledAction(formData: FormData): Promise<void> {
+  const auth = await requireAuth();
+  if (auth.role === "member") return;
+  const enabled = formData.get("enabled") === "true";
+  await supabaseAdmin().from("whatsapp_agent_connections")
+    .update({ enabled, ...(enabled ? { last_error: null } : {}), updated_at: new Date().toISOString() })
+    .eq("workspace_id", auth.workspace.id);
+  revalidatePath("/settings");
+}

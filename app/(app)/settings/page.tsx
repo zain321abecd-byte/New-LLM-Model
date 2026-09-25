@@ -41,7 +41,7 @@ export default async function SettingsPage() {
           <ProfileForm ws={auth.workspace} canEdit={auth.role !== "member"} />
         </div>
         <div className="space-y-7 lg:col-span-2">
-          <WhatsAppAgentForm status={agentStatus} canEdit={auth.role !== "member"} />
+          <WhatsAppAgentForm status={agentStatus} canEdit={auth.role !== "member"} workerEnabled={env().WHATSAPP_AGENT_ENABLED} keyFromEnv={!!env().WHATSAPP_AGENT_KEY} />
           <WhatsAppLinkForm linkedPhone={link?.verified_at ? link.phone : null} businessNumber={env().WHATSAPP_BUSINESS_NUMBER ?? null} />
           <section>
             <h2 className="section-title">Integrations</h2>
